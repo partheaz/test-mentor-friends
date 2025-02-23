@@ -72,26 +72,45 @@ class AVLTree{
         return this.balance(root,key);
     }
     //min value for deleting
-    getMinValueNode(node){
-        return node.left ? this.getMinValueNode(node.left) : 0;
+    getMinValueNode(node) {
+        if (!node) return null; 
+        while (node.left) {
+            node = node.left;
+        }
+        return node;  
     }
+    
 
     //deleting a node 
-    delete(root,key){
+    delete(root, key) {
         if (!root) return null;
-        if(key <  root.key) root.left = this.delete(root.left,key);
-        else if(key > root.key) root.right = this.delete(root.right,key);
-        else{
-            if(!root.left) return root.right;
-            if(!root.right) return root.left;
-
-            const minNode = this.getMinValueNode(root.right);
-            root.key = minNode.key;
-            root.right = this.delete(root.right,minNode.key);
+    
+        // Standard BST delete
+        if (key < root.key) {
+            root.left = this.delete(root.left, key);
+        } else if (key > root.key) {
+            root.right = this.delete(root.right, key);
+        } else {
+            // Node with only one child or no child
+            if (!root.left || !root.right) {
+                root = root.left ? root.left : root.right;
+            } else {
+                // Node with two children: Get inorder successor
+                let temp = this.getMinValueNode(root.right);
+                root.key = temp.key;
+                root.right = this.delete(root.right, temp.key);
+            }
         }
+    
+        if (!root) return root; // If tree becomes empty
+    
+        // Update height
         this.updateHeight(root);
-        const balance = this.balanceFactor(root);
-        //rotation after deletion using balanceFactor
+    
+        // Get balance factor
+        let balance = this.balanceFactor(root);
+    
+        // Balance the tree
         if (balance > 1) {
             return this.balanceFactor(root.left) >= 0
                 ? this.rightRotate(root)
@@ -102,9 +121,10 @@ class AVLTree{
                 ? this.leftRotate(root)
                 : (root.right = this.rightRotate(root.right), this.leftRotate(root));
         }
+    
         return root;
-            
     }
+    
 
     insertKey(key){
         this.root = this.insert(this.root,key);
@@ -117,6 +137,16 @@ class AVLTree{
     updateKey(key,newKey){
         this.deleteKey(key);
         this.insertKey(newKey);
+    }
+    get(root, key) {
+        if (!root) return false; 
+    
+        if (key === root.key) return true; 
+        if (key < root.key) return this.get(root.left, key); 
+        return this.get(root.right, key);
+    }
+    getKey(key) {
+        return this.get(this.root, key);
     }
 
     printTree(){
@@ -134,20 +164,16 @@ class AVLTree{
 
 // Test
 const avl = new AVLTree();
-const keys = [34, 45, 67, 65, 2, 3, 9, 0];
-keys.forEach(key => avl.insertKey(key));
-console.log('Initial');
+// Insert numbers 0 to 500
+for (let i = 0; i <= 500; i++) {
+    avl.insertKey(i);
+}
 avl.printTree();
-//delete operation
-avl.deleteKey(0);
-console.log('Tree after deletion of 0');
+console.log('Before Deletion');
+for (let i = 100; i <= 400; i++) {
+        avl.deleteKey(i);
+        }
 avl.printTree();
-
-//insertion operation
-avl.insertKey(56);
-console.log('Tree after insertion of 56')
-avl.printTree();
- //update 56 with 100
-avl.updateKey(34,89);
-console.log('Tree after update of 56 with 100')
-avl.printTree();
+console.log('After Deletion');
+console.log(avl.getKey(300)); 
+console.log(avl.getKey(500));
